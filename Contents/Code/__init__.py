@@ -31,11 +31,11 @@ def conn():
 def Main():
     oc = ObjectContainer(
         objects=[
-            DirectoryObject(key=Callback(GroupBy, group_by="ScheduleName", order_by="max(ProgramStartTime) DESC"), title="Group by Schedule Name Order by Latest"),
-            DirectoryObject(key=Callback(GroupBy, group_by="ScheduleName", order_by="ScheduleName"), title="Group by Schedule Name Order by Schedule Name"),
-            DirectoryObject(key=Callback(GroupBy, group_by="Title", order_by="max(ProgramStartTime) DESC"), title="Group by Program Title Order by Latest"),
-            DirectoryObject(key=Callback(GroupBy, group_by="Title", order_by="Title"), title="Group by Program Title Order by Program Title"),
-            DirectoryObject(key=Callback(Latest, number=10), title="Latest 10"),
+            DirectoryObject(key=Callback(GroupBy, group_by="ScheduleName", order_by="max(ProgramStartTime) DESC"), title="Schedules / latest recordings first"),
+            DirectoryObject(key=Callback(GroupBy, group_by="ScheduleName", order_by="ScheduleName"), title="Schedules / alphabetically"),
+            DirectoryObject(key=Callback(GroupBy, group_by="Title", order_by="max(ProgramStartTime) DESC"), title="Titles / latest recordings first"),
+            DirectoryObject(key=Callback(GroupBy, group_by="Title", order_by="Title"), title="Titles / alphabetically"),
+            DirectoryObject(key=Callback(Latest, number=10), title="Latest 10 recordings"),
             ])
     return oc
 

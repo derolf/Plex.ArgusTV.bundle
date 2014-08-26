@@ -20,11 +20,11 @@ def dec(s):
     return s.decode("UTF-8")
 
 
-def Start():
-    global cnx
+def conn():
     cnx = mysql.connector.connect(user=Prefs["user"], password=Prefs["password"],
                               host=Prefs["server"], port=int(Prefs["port"]),
                               database=Prefs["database"])
+    return closing(cnx)
 
 
 @handler("/video/argustv", "Title")
@@ -42,29 +42,31 @@ def Main():
 @route('/video/argustv/groupby')
 def GroupBy(group_by, order_by):
     objects = []
-    with closing(cnx.cursor()) as cursor:
-        sql = "SELECT %s, max(ProgramStartTime), count(RecordingId) FROM Recording WHERE ChannelType = 0 AND PendingDelete = 0 GROUP BY %s ORDER BY %s" %\
-              (group_by, group_by, order_by)
-        cursor.execute(sql)
-        for row in cursor:
-            title = "%s (%d) - %s" % (row[0], row[2], row[1])
-            objects.append(TVShowObject(key=Callback(Recordings, key=group_by, value=enc(row[0])), title=title, episode_count=row[2], rating_key=row[0]))
-    oc = ObjectContainer(objects=objects)
-    return oc
+    with conn() as cnx:
+        with closing(cnx.cursor()) as cursor:
+            sql = "SELECT %s, max(ProgramStartTime), count(RecordingId) FROM Recording WHERE ChannelType = 0 AND PendingDelete = 0 GROUP BY %s ORDER BY %s" %\
+                  (group_by, group_by, order_by)
+            cursor.execute(sql)
+            for row in cursor:
+                title = "%s (%d) - %s" % (row[0], row[2], row[1])
+                objects.append(TVShowObject(key=Callback(Recordings, key=group_by, value=enc(row[0])), title=title, episode_count=row[2], rating_key=row[0]))
+        oc = ObjectContainer(objects=objects)
+        return oc
 
 
 @route('/video/argustv/latest')
 def Latest(number):
     oc = ObjectContainer(title2="Latest %d" % (int(number)))
-    with closing(cnx.cursor()) as cursor:
-        sql = "SELECT RecordingId, Title, SubTitle, EpisodeNumberDisplay, ProgramStartTime, Description, RecordingFileName FROM Recording WHERE ChannelType = 0 AND PendingDelete = 0 ORDER BY ProgramStartTime DESC LIMIT %s"
-        cursor.execute(sql, (int(number), ))
-        for row in cursor:
-            try:
-                oc.add(CreateRecordingFromSQL(row, include_title=True))
-            except Exception as e:
-                Log.Debug(e)
-    return oc
+    with conn() as cnx:
+        with closing(cnx.cursor()) as cursor:
+            sql = "SELECT RecordingId, Title, SubTitle, EpisodeNumberDisplay, ProgramStartTime, Description, RecordingFileName FROM Recording WHERE ChannelType = 0 AND PendingDelete = 0 ORDER BY ProgramStartTime DESC LIMIT %s"
+            cursor.execute(sql, (int(number), ))
+            for row in cursor:
+                try:
+                    oc.add(CreateRecordingFromSQL(row, include_title=True))
+                except Exception as e:
+                    Log.Debug(e)
+        return oc
 
 
 def CreateRecordingFromSQL(row, include_title, container=False):
@@ -107,26 +109,28 @@ def CreateRecordingFromSQL(row, include_title, container=False):
 
 @route('/video/argustv/createrecording')
 def CreateRecording(recording_id, container=False):
-    with closing(cnx.cursor()) as cursor:
-        sql = "SELECT RecordingId, Title, SubTitle, EpisodeNumberDisplay, ProgramStartTime, Description, RecordingFileName FROM Recording WHERE RecordingId = %s"
-        cursor.execute(sql, (recording_id, ))
-        for row in cursor:
-            return CreateRecordingFromSQL(row, include_title=True, container=container)
+    with conn() as cnx:
+        with closing(cnx.cursor()) as cursor:
+            sql = "SELECT RecordingId, Title, SubTitle, EpisodeNumberDisplay, ProgramStartTime, Description, RecordingFileName FROM Recording WHERE RecordingId = %s"
+            cursor.execute(sql, (recording_id, ))
+            for row in cursor:
+                return CreateRecordingFromSQL(row, include_title=True, container=container)
 
 
 @route('/video/argustv/recordings')
 def Recordings(key, value):
     value = dec(value)
     oc = ObjectContainer(title2=value)
-    with closing(cnx.cursor()) as cursor:
-        sql = "SELECT RecordingId, Title, SubTitle, EpisodeNumberDisplay, ProgramStartTime, Description, RecordingFileName FROM Recording WHERE %s = %s AND ChannelType = 0 AND PendingDelete = 0 ORDER BY ProgramStartTime DESC" %\
-            (key, "%s")
-        cursor.execute(sql, (value, ))
-        for row in cursor:
-            try:
-                oc.add(CreateRecordingFromSQL(row, include_title=False))
-            except Exception as e:
-                Log.Debug(e)
+    with conn() as cnx:
+        with closing(cnx.cursor()) as cursor:
+            sql = "SELECT RecordingId, Title, SubTitle, EpisodeNumberDisplay, ProgramStartTime, Description, RecordingFileName FROM Recording WHERE %s = %s AND ChannelType = 0 AND PendingDelete = 0 ORDER BY ProgramStartTime DESC" %\
+                (key, "%s")
+            cursor.execute(sql, (value, ))
+            for row in cursor:
+                try:
+                    oc.add(CreateRecordingFromSQL(row, include_title=False))
+                except Exception as e:
+                    Log.Debug(e)
 
-    return oc
+        return oc
 

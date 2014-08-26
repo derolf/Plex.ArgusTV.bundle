@@ -1,0 +1,32 @@
+[
+    {
+        "id": "server",
+        "type": "text",
+        "label": "Server Name",
+        "default": "localhost"
+    },
+    {
+        "id": "port",
+        "type": "text",
+        "label": "Port",
+        "default": 3306
+    },
+    {
+        "id": "database",
+        "type": "text",
+        "label": "Database",
+        "default": "argustv"
+    },
+    {
+        "id": "user",
+        "type": "text",
+        "label": "User Name",
+        "default": "argustv"
+    },
+    {
+        "id": "password",
+        "type": "text",
+        "label": "Password",
+        "default": "argustv"
+    }
+]

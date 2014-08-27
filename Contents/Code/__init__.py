@@ -100,7 +100,7 @@ def CreateRecordingFromSQL(row, include_title, container=False):
 
     eo = EpisodeObject(title=title, summary=summary, show=show, key=Callback(CreateRecording, recording_id=recording_id, container=True),
                     rating_key=recording_id,
-                    items=[MediaObject(parts=[PartObject(key=recording_id, file=file)])]) #"/home/daniel/Documents/Videos/05022011001.mp4"
+                    items=[MediaObject(parts=[PartObject(key=recording_id, file=file)])])
 
     if container:
         return ObjectContainer(objects=[eo])

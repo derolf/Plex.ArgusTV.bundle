@@ -4,6 +4,7 @@ from contextlib import closing
 import mysql.connector
 import datetime
 import pickle
+import urllib
 
 date_fmt = "%d.%m.%y %H:%M"
 cnx = None
@@ -100,7 +101,7 @@ def CreateRecordingFromSQL(row, include_title, container=False):
 
     eo = EpisodeObject(title=title, summary=summary, show=show, key=Callback(CreateRecording, recording_id=recording_id, container=True),
                     rating_key=recording_id,
-                    items=[MediaObject(parts=[PartObject(key=recording_id, file=file)])])
+                    items=[MediaObject(parts=[PartObject(key=recording_id, file=urllib.quote(file.encode("UTF-8"), safe="/\ "))])])
 
     if container:
         return ObjectContainer(objects=[eo])

@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from contextlib import closing
+
 import mysql.connector
-import datetime
-import pickle
-import urllib
+import fileserver
+import utils
+utils.Log.log.log = Log
+from utils import *
 
 date_fmt = "%d.%m.%y %H:%M"
 cnx = None
-
 
 def date(tm):
     return tm.strftime( date_fmt )
@@ -27,6 +28,10 @@ def conn():
                               database=Prefs["database"])
     return closing(cnx)
 
+def Start():
+    Log.Info( "Launching file server at port 32499")
+    fileserver.launch(32499, file_for_path)
+    Log.Info( "File server launched")
 
 @handler("/video/argustv", "Title")
 def Main():
@@ -39,6 +44,15 @@ def Main():
             DirectoryObject(key=Callback(Latest, number=10), title="Latest 10 recordings"),
             ])
     return oc
+
+def file_for_path(path):
+    with conn() as cnx:
+        with closing(cnx.cursor()) as cursor:
+            sql = "SELECT RecordingFileName FROM Recording WHERE RecordingId = %s"
+            cursor.execute(sql, (recording_id, ))
+            for row in cursor:
+                Log.Debug(row[0])
+                return row[0]
 
 @route('/video/argustv/groupby')
 def GroupBy(group_by, order_by):
@@ -100,8 +114,9 @@ def CreateRecordingFromSQL(row, include_title, container=False):
         summary = plot
 
     eo = EpisodeObject(title=title, summary=summary, show=show, key=Callback(CreateRecording, recording_id=recording_id, container=True),
-                    rating_key=recording_id,
-                    items=[MediaObject(parts=[PartObject(key=recording_id, file=urllib.quote(file.encode("UTF-8"), safe="/\ "))])])
+                    rating_key=recording_id, #url="http://localhost:32401/" + recording_id)
+                    #items=[MediaObject(parts=[PartObject(key=recording_id, file=file)])])
+                    items=[MediaObject(parts=[PartObject(key="http://localhost:32499/" + recording_id)])])
 
     if container:
         return ObjectContainer(objects=[eo])

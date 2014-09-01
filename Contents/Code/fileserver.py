@@ -52,16 +52,20 @@ def HTTPRangeRequestHandler(file_for_path):
 
         @log_exception
         def do_GET(self, head=False):
-            Log.Info("GET")
+            Log.Info("GET %s" % self.path)
+            Log.Info("A")
             path = file_for_path(self.path)
+            Log.Info("B")
             if not os.path.isfile(path):
                 self.send_error(404, "File not found")
                 return
 
+            Log.Info("C")
             stat = os.stat(path)
-            file_size = os.stat(path).st_size
+            Log.Info("D")
+            file_size = stat.st_size
 
-            first, size, partial = self.get_range(os.stat(path).st_size)
+            first, size, partial = self.get_range(stat.st_size)
             self.send_response(206 if partial else 200)
             self.send_header("Accept-Ranges", "bytes")
             self.send_header("Last-Modified", self.date_time_string(stat.st_mtime))
@@ -71,14 +75,20 @@ def HTTPRangeRequestHandler(file_for_path):
             self.send_header("Content-Length", size)
             self.end_headers()
 
+            Log.Info("E")
+
             if head:
                 return
 
+            Log.Info("F")
+
             f = os.open(path, os.O_RDONLY)
+
+            Log.Info("G")
             try:
-                Log.Info("A")
+                Log.Info("H")
                 os.lseek(f, first, 0)
-                Log.Info("B")
+                Log.Info("I")
                 while size > 0:
                     chunk = min(size, 4096)
                     Log.Info("C")

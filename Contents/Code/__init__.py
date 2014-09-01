@@ -46,12 +46,12 @@ def Main():
     return oc
 
 def file_for_path(path):
+    recording_id = path[1:]
     with conn() as cnx:
         with closing(cnx.cursor()) as cursor:
             sql = "SELECT RecordingFileName FROM Recording WHERE RecordingId = %s"
             cursor.execute(sql, (recording_id, ))
             for row in cursor:
-                Log.Debug(row[0])
                 return row[0]
 
 @route('/video/argustv/groupby')

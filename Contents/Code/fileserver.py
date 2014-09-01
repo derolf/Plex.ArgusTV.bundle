@@ -67,13 +67,18 @@ def HTTPRangeRequestHandler(file_for_path):
             Log.Info("DD")
 
             first, size, partial = self.get_range(file_size)
+            Log.Info("DD2")
             self.send_response(206 if partial else 200)
+            Log.Info("DD3")
             self.send_header("Accept-Ranges", "bytes")
+            Log.Info("DD4")
             #self.send_header("Last-Modified", self.date_time_string(stat.st_mtime))
             #self.send_header("Content-type", self.guess_type(path))
             #self.send_header("Content-Type", "video/mp4")
             self.send_header("Content-Range", 'bytes ' + str(first) + '-' + str(first + size - 1) + '/' + str(file_size))
+            Log.Info("DD5")
             self.send_header("Content-Length", size)
+            Log.Info("DD6")
             self.end_headers()
 
             Log.Info("E")

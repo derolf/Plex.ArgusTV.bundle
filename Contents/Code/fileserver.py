@@ -53,35 +53,23 @@ def HTTPRangeRequestHandler(file_for_path):
         @log_exception
         def do_GET(self, head=False):
             Log.Info("GET %s" % self.path)
-            Log.Info("A")
             path = file_for_path(self.path)
-            Log.Info("B")
             if not os.path.isfile(path):
                 self.send_error(404, "File not found")
                 return
 
-            Log.Info("C")
             f = os.open(path, os.O_RDONLY)
-            Log.Info("D")
             file_size = os.lseek(f, 0, 2)
-            Log.Info("DD")
 
             first, size, partial = self.get_range(file_size)
-            Log.Info("DD2")
-            self.send_response(206 if partial else 200)
-            Log.Info("DD3")
+            self.send_response(206 if partial else 200)  # FAILS on Windows!
             self.send_header("Accept-Ranges", "bytes")
-            Log.Info("DD4")
             #self.send_header("Last-Modified", self.date_time_string(stat.st_mtime))
             #self.send_header("Content-type", self.guess_type(path))
             #self.send_header("Content-Type", "video/mp4")
             self.send_header("Content-Range", 'bytes ' + str(first) + '-' + str(first + size - 1) + '/' + str(file_size))
-            Log.Info("DD5")
             self.send_header("Content-Length", size)
-            Log.Info("DD6")
             self.end_headers()
-
-            Log.Info("E")
 
             if head:
                 return
